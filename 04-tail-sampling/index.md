@@ -15,11 +15,7 @@ draft: false
 
 *Tempo di lettura: ~10 minuti*
 
-Quando inizi con OTel, potrebbe sembrare: "Perfetto! Ora traccio tutto!"
-
-Ma c'è un problema.
-
-Se tracciassi **ogni richiesta**, **ogni call**, **ogni evento**, il tuo storage esploderebbe. E i costi con lui.
+Tracciare ogni richiesta genera un volume di dati che cresce linearmente con il traffico. Questo ha implicazioni significative sui costi di storage.
 
 ```text
 1000 richieste/secondo × 8 span per richiesta
@@ -29,10 +25,10 @@ Se tracciassi **ogni richiesta**, **ogni call**, **ogni evento**, il tuo storage
 = $3000+/mese in costi
 ```
 
-E tutto per tracciare anche cose inutili:
-- Health check ogni 5 secondi? Tracciato.
-- Request di monitoraggio? Tracciato.
-- Call velocissime che non hanno mai problemi? Tracciato.
+Incluse tracce con basso valore diagnostico:
+- Health check ogni 5 secondi
+- Request di monitoraggio interni
+- Call veloci che non presentano problemi
 
 ---
 
@@ -45,9 +41,7 @@ POST /checkout → 500ms (IMPORTANTE, richiesta rara ma critica)
 ERROR: Timeout → 5s (IMPORTANTE, voglio sapere cosa è successo)
 ```
 
-Ma stavo pagando per **tutte** allo stesso modo.
-
-Era come pagare l'assicurazione auto al massimo della copertura anche per i parcheggi in città.
+Tutte le tracce hanno lo stesso costo di storage, indipendentemente dal loro valore diagnostico.
 
 ---
 
@@ -160,7 +154,7 @@ Con Datadog light tier: ~$300/mese
 TOTALE: ~$300/mese
 ```
 
-**Sono passato da $3000 a $300. 10x di riduzione.**
+**Riduzione: da $3000 a $300/mese (10x).**
 
 ---
 
@@ -215,9 +209,9 @@ service:
 
 ---
 
-## Nel Tuo Codice
+## Nel Codice Applicativo
 
-Per markare una richiesta come "importante", aggiungi questo:
+Per marcare una richiesta come importante, è sufficiente aggiungere un attributo:
 
 ```javascript
 // checkout endpoint - importante!
@@ -278,9 +272,9 @@ Significa: 100-500ms di latenza in memoria nel Collector.
 
 Non è un problema per la maggior parte dei casi, ma è un'informazione importante.
 
-### 2. Devi decidere quali richieste sono importanti
+### 2. Definizione delle richieste importanti
 
-Non è "plug and play". Devi pensare al tuo caso:
+La configurazione richiede l'identificazione delle operazioni critiche per il contesto specifico:
 
 - **E-commerce**: Checkout, payment, cart operations
 - **SaaS**: Login, configuration changes, admin operations
@@ -289,13 +283,9 @@ Non è "plug and play". Devi pensare al tuo caso:
 
 ---
 
-## Il Valore Reale
+## Riepilogo
 
-La cosa importante è capire questo:
-
-**Più dati non significa migliore osservabilità.**
-
-Significa storage pieno, query lente, costi alti, rumore.
+Il principio fondamentale: più dati non equivale a migliore osservabilità. Un volume eccessivo di tracce comporta storage elevato, query lente e rumore nei dati.
 
 Con Tail Sampling:
 - 85% di riduzione dello storage
@@ -304,9 +294,9 @@ Con Tail Sampling:
 
 ---
 
-## Vuoi provare il Tail Sampling?
+## Repository
 
-Ho preparato il modulo 5 del workshop con tutto configurato:
+Il modulo 5 del workshop include la configurazione completa del tail sampling:
 
 ```bash
 cd otel-demo/module-05

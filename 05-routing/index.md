@@ -15,9 +15,7 @@ draft: false
 
 *Tempo di lettura: ~8 minuti*
 
-Quando usi OTel e inizi a loggare, tutto finisce nel **OTel Collector**.
-
-Il Collector riceve tutto e lo manda dove è configurato.
+Con OpenTelemetry, tutti i log vengono inviati all'OTel Collector che li inoltra alle destinazioni configurate.
 
 ```text
 ├─ Log tecnico (debug, info, errors)
@@ -27,16 +25,12 @@ Il Collector riceve tutto e lo manda dove è configurato.
 Tutto → OTel Collector → Loki
 ```
 
-Il problema: **non tutti questi log vanno nello stesso posto.**
-
-Con GDPR e compliance requirements:
+Non tutti i log hanno la stessa destinazione appropriata. Per requisiti GDPR e compliance:
 - **Audit log** deve essere in accesso ristretto (compliance team only)
 - **Log tecnico** può andare a Loki (per il debugging)
 - **Log di sistema** può essere scartato (è rumore)
 
-Se tutto va nello stesso Loki, un developer vede **TUTTO**: audit log, log sensibili, tutto.
-
-Questo non va bene per compliance.
+Se tutti i log confluiscono nello stesso Loki, i developer hanno accesso anche ai log sensibili. Questo viola i requisiti di compliance.
 
 ```text
 Loki (accesso al team tecnico):
@@ -45,7 +39,7 @@ Loki (accesso al team tecnico):
   [Debug info]                               ← Tecnico, ok
 ```
 
-Soluzione: **fare il Collector intelligente**.
+La soluzione è configurare il routing nel Collector.
 
 ---
 
@@ -112,11 +106,9 @@ app.post('/checkout', (req, res) => {
 ```
 
 Il Collector legge l'attributo `log.type`:
-- Se vede `'audit'`, lo manda a un servizio protetto
-- Se vede `'technical'`, lo manda a Loki
-- Se vede `'debug'`, lo scarta
-
-**È tutto quello che serve.**
+- `'audit'` → servizio protetto
+- `'technical'` → Loki
+- `'debug'` → scartato
 
 ---
 
@@ -131,7 +123,7 @@ Loki (everyone has access):
   Query slow                           ← Tecnico
 ```
 
-Un developer vede i dati di pagamento. Non va bene.
+I developer hanno accesso ai dati di pagamento.
 
 **Dopo il Routing:**
 
@@ -145,13 +137,13 @@ Audit Service (compliance only):
   (Encrypted, restricted access)
 ```
 
-Developer accede solo ai log tecnici. Audit è separato. Compliance è soddisfatta.
+I developer accedono solo ai log tecnici. Gli audit log sono separati e i requisiti di compliance sono soddisfatti.
 
 ---
 
 ## Destinazioni Tipiche
 
-Nel tuo Collector puoi configurare tre route principali:
+Configurazione delle tre route principali:
 
 ```yaml
 routes:
@@ -274,11 +266,11 @@ service:
 
 ---
 
-## Cosa Ho Imparato
+## Punti Chiave
 
-1. **Non tutti i dati sono uguali.** Trattali diversamente.
-2. **Il Routing Processor è potente e semplice.** Una riga di codice nel tuo log.
-3. **Compliance non è "aggiunto dopo".** È baked-in dal primo giorno.
+1. **Differenziazione dei dati** — Log diversi richiedono destinazioni diverse
+2. **Routing Processor** — Una configurazione minima nel codice
+3. **Compliance by design** — La separazione dei dati è parte dell'architettura
 
 ---
 
@@ -292,7 +284,7 @@ In questa serie abbiamo costruito un sistema di osservabilità completo:
 - **Tail sampling** per ridurre costi del 90%
 - **Routing intelligente** per compliance GDPR/SOC2
 
-**Un singolo SDK, un singolo Collector, mille possibilità.**
+Tutti i componenti utilizzano un singolo SDK e Collector.
 
 ---
 

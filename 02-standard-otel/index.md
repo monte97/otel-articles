@@ -15,27 +15,25 @@ draft: false
 
 *Tempo di lettura: ~10 minuti*
 
-Quando inizi a lavorare con microservizi in linguaggi diversi, scopri in fretta il problema.
+In un'architettura a microservizi con linguaggi diversi, il tracing presenta un problema di interoperabilità.
 
-Hai:
-- Un servizio **Node.js** (API principale)
-- Un servizio **Python** (inventory)
-- Un servizio **Go** (payment)
+Scenario tipico:
+- Servizio **Node.js** (API principale)
+- Servizio **Python** (inventory)
+- Servizio **Go** (payment)
 
-Tutto su stessa richiesta HTTP.
-
-Domanda semplice: **come faccio a vedere dove ci impiega più tempo?**
+Una singola richiesta HTTP attraversa tutti e tre. Per identificare dove viene speso il tempo è necessario correlare le tracce fra servizi.
 
 ---
 
 ## Il Problema: Linguaggi Diversi, Tool Diversi
 
-Senza OTel:
-- Il team Node ha il suo strumento di tracing (tipo APM di Node)
-- Il team Python ha il suo strumento
-- Il team Go ha il suo strumento
+Senza uno standard comune:
+- Il team Node usa un APM Node-specifico
+- Il team Python usa un proprio strumento di tracing
+- Il team Go usa un'altra soluzione
 
-Sono tre "lingue" diverse. Tre tool diversi. Tre modi diversi di scrivere ID di traccia.
+Tre strumenti con formati diversi per rappresentare gli ID di traccia.
 
 ```text
 Node.js APM:
@@ -50,24 +48,20 @@ Go APM:
   └─ Span ID: "def-456"
      └─ Timestamp: 1692000000 (sono connessi?)
 
-Non lo so.
+→ Non correlabile
 ```
 
-Il problema? Ognuno di questi tool ha il suo schema, il suo formato, le sue convenzioni.
-
-Quando la richiesta passa da Node a Python, non c'è uno standard che dice "passa questo ID in questo modo". Ognuno fa il suo.
+Ogni tool ha schema, formato e convenzioni proprietarie. Quando la richiesta passa da Node a Python, non esiste uno standard per propagare il trace ID.
 
 ---
 
-## Quando Ho Capito Che Uno Standard Era Necessario
+## Le Alternative
 
-Potevo fare:
-1. **Passare manualmente l'ID**: Ogni servizio copia-incolla l'ID dal precedente nei log. Funziona ma è manuale e fragile.
-2. **Usare uno standard condiviso**: Tutti leggono e scrivono con lo stesso formato.
+Due approcci possibili:
+1. **Propagazione manuale**: Ogni servizio estrae e passa l'ID nei log. Funziona ma è fragile e richiede manutenzione.
+2. **Standard condiviso**: Tutti i servizi usano lo stesso formato e protocollo.
 
-Mi sembrò ovvio che la soluzione era la 2.
-
-Cominciai a cercare se esisteva uno standard così. E scoprii che sì: **OpenTelemetry**.
+OpenTelemetry implementa l'approccio 2.
 
 ---
 
@@ -127,9 +121,9 @@ OTel **automaticamente**:
 - Registra la latenza
 - Attacca la risposta allo span
 
-Non ho scritto nulla di questo. OTel lo ha fatto.
+L'auto-instrumentation gestisce questi aspetti automaticamente.
 
-Quando il servizio Python riceve la richiesta, OTel Python **sa come leggere il trace ID** dal header (perché è uno standard).
+Quando il servizio Python riceve la richiesta, l'SDK OTel Python legge il trace ID dall'header standard.
 
 ```python
 # Python automaticamente legge il trace ID dall'header
@@ -159,9 +153,7 @@ GET /buy (Node)           [0ms - 470ms]
 
 **Una singola ID. Una singola timeline. Tutto correlato.**
 
-Non devo aprire tre tool diversi. Non devo copiare manualmente gli ID. Non devo sperare che i timestamp corrispondano.
-
-È tutto automatico.
+Non è necessario aprire tool separati o correlare manualmente gli ID. La propagazione è automatica.
 
 ---
 
@@ -216,15 +208,15 @@ OTel è lo stesso per l'osservabilità.
 
 ---
 
-## Nel Workshop
+## Nella Pratica
 
-Nel workshop mostro esattamente questa cosa.
+Il workshop dimostra la correlazione cross-language:
 
-- Modulo 1: Un servizio Node con logging
-- Modulo 2: Aggiungi due servizi (Python e Go) e guarda una singola traccia
-- Modulo 3: Aggiungi metriche
+- **Modulo 1**: Servizio Node con logging
+- **Modulo 2**: Aggiunta di servizi Python e Go con traccia unificata
+- **Modulo 3**: Integrazione delle metriche
 
-**Non è "impara OTel".** È "**vedi come uno standard connette sistemi diversi**."
+L'obiettivo è mostrare come uno standard comune connette sistemi eterogenei.
 
 ---
 

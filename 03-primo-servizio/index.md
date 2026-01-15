@@ -15,15 +15,13 @@ draft: false
 
 *Tempo di lettura: ~12 minuti*
 
-"Ok, capisco il concetto. Ma come lo faccio davvero? Dove inizio?"
-
-Bene. Iniziamo da un servizio Node.js semplicissimo.
+Questa sezione mostra l'implementazione pratica di OpenTelemetry su un servizio Node.js, partendo da un'applicazione senza strumentazione.
 
 ---
 
 ## Il Punto di Partenza: Un Servizio Node Normale
 
-Immagina un e-commerce con un endpoint `/buy`:
+Un servizio e-commerce con endpoint `/buy`:
 
 ```javascript
 // index.js - il tuo servizio (BEFORE)
@@ -59,9 +57,9 @@ app.listen(PORT, () => {
 });
 ```
 
-**Il problema?**
+**Limitazioni:**
 
-Se qualcosa va male, hai:
+Senza strumentazione:
 - Console log (sparisce quando il processo muore)
 - No trace di cosa è successo fra i servizi
 - No metriche
@@ -91,9 +89,7 @@ sdk.start();
 console.log('✓ OpenTelemetry initialized');
 ```
 
-**Fatto. Questo è letteralmente tutto il setup.**
-
-Cosa fa questo codice?
+Questo codice:
 - Configura OpenTelemetry
 - Auto-instrumenta tutte le librerie Node.js (axios, express, database, ecc.)
 - Manda le tracce al Collector su localhost:4317
@@ -120,9 +116,9 @@ Avvia:
 npm start
 ```
 
-Adesso il tuo servizio è instrumentato. **Senza aver cambiato nulla nel codice dell'app.**
+Il servizio è ora instrumentato senza modifiche al codice applicativo.
 
-Testa:
+Test:
 
 ```bash
 curl http://localhost:3003/buy?userId=alice&productId=123
@@ -134,17 +130,17 @@ OTel automaticamente ha creato una traccia con:
 - ✓ Call a shipping (axios.get)
 - ✓ Tempo totale
 
-Ma adesso: dove visualizzo la traccia?
+Per visualizzare le tracce serve un backend di raccolta.
 
 ---
 
-## Step 3: Il Collector (La Pezzo Mancante)
+## Step 3: Il Collector
 
-Il servizio OTel da solo non basta. Quando crei una traccia, deve andare **da qualche parte**.
+Il servizio OTel genera tracce che devono essere raccolte e inviate a un backend di visualizzazione.
 
-Entra il **OTel Collector**: è il servizio che riceve tracce dai tuoi servizi e le manda dove vuoi.
+Il **OTel Collector** riceve tracce dai servizi e le inoltra alle destinazioni configurate.
 
-Crei `collector-config.yaml`:
+File `collector-config.yaml`:
 
 ```yaml
 receivers:
@@ -166,7 +162,7 @@ service:
       exporters: [logging, jaeger]
 ```
 
-Più facile: usa docker-compose per avviare tutto:
+Setup con docker-compose:
 
 ```yaml
 # docker-compose.yml
@@ -202,7 +198,7 @@ Seleziona "shop-service" dal dropdown.
 
 Premi il bottone Search.
 
-**E vedi:**
+**Output:**
 
 ```text
 Service: shop-service
@@ -214,15 +210,15 @@ Duration: 547ms
 └─ Response - 77ms
 ```
 
-Una singola timeline. Tutto correlato.
+Singola timeline con tutte le operazioni correlate.
 
 ---
 
 ## Step 5: Aggiungere Logging Correlato (Opzionale)
 
-Il vero potere è quando **connetti anche i log** alla traccia.
+È possibile collegare i log alla traccia tramite il trace ID.
 
-Nel tuo `index.js`, usa Pino (un logger moderno):
+Esempio con Pino:
 
 ```javascript
 // index.js - con logging
@@ -261,7 +257,7 @@ app.get('/buy', async (req, res) => {
 });
 ```
 
-Ora ogni log ha il `traceId`. Se apri Jaeger e clicchi su un'operazione, puoi andare diritto ai log correlati.
+Ogni log include il `traceId`, permettendo la correlazione con le tracce in Jaeger.
 
 ---
 
@@ -303,9 +299,9 @@ my-service/
 └── docker-compose.yml     (avvia Collector + Jaeger)
 ```
 
-Totale di codice nuovo che hai scritto: **25 righe.**
+Codice aggiunto: **~25 righe.**
 
-E hai ottenuto:
+Funzionalità ottenute:
 - ✓ Distributed tracing
 - ✓ Cross-service correlation
 - ✓ Timeline visualizzazione
@@ -313,21 +309,19 @@ E hai ottenuto:
 
 ---
 
-## Cosa Manca Ancora?
+## Prossimi Passi
 
-Bene, ma cosa succede se:
+Aspetti non ancora coperti:
 
-1. **Hai migliaia di richieste al giorno?** (Costi di storage → prossimo articolo: Tail Sampling)
-2. **Vuoi misurare le performance?** (Rate, Errors, Duration → Metriche)
-3. **Vuoi separare l'audit log dai debug log?** (→ Routing)
-
-Questi sono gli argomenti dei prossimi articoli.
+1. **Alto volume di richieste** — Costi di storage (→ Tail Sampling)
+2. **Misurazione performance** — Rate, Errors, Duration (→ Metriche)
+3. **Separazione log** — Audit log vs debug log (→ Routing)
 
 ---
 
-## Vuoi Provare?
+## Repository
 
-Ho preparato tutto in docker-compose. Clona il repository:
+Il codice completo è disponibile nel repository:
 
 ```bash
 git clone https://github.com/monte97/otel-demo
