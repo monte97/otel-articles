@@ -1,6 +1,19 @@
-# Il Costo Nascosto dell'Osservabilità: Come Ridurlo Senza Perdere i Dati Importanti
+---
+title: "Il Costo Nascosto dell'Osservabilità: Come Ridurlo Senza Perdere i Dati Importanti"
+date: 2025-01-08T10:00:00+01:00
+description: "Come ridurre del 90% i costi di storage dell'osservabilità con tail sampling, senza perdere errori e operazioni critiche"
+menu:
+  sidebar:
+    name: "4. Tail Sampling"
+    identifier: otel-4
+    weight: 40
+    parent: otel-workshop
+tags: ["OpenTelemetry", "Sampling", "Cost Optimization", "Observability"]
+categories: ["Observability", "DevOps", "Workshop"]
+draft: false
+---
 
-## Il Problema Reale: Tracciare Tutto Costa
+*Tempo di lettura: ~10 minuti*
 
 Quando inizi con OTel, potrebbe sembrare: "Perfetto! Ora traccio tutto!"
 
@@ -8,7 +21,7 @@ Ma c'è un problema.
 
 Se tracciassi **ogni richiesta**, **ogni call**, **ogni evento**, il tuo storage esploderebbe. E i costi con lui.
 
-```
+```text
 1000 richieste/secondo × 8 span per richiesta
 = 8000 span/secondo
 = 3.11 MILIARDI di span al mese
@@ -25,7 +38,7 @@ E tutto per tracciare anche cose inutili:
 
 ## Il Problema Reale: Non Tutte le Tracce Sono Uguali
 
-```
+```text
 GET /health → 2ms (inutile, traccia ogni 5 secondi)
 GET /api/data → 150ms (utile, ma ce ne sono milioni)
 POST /checkout → 500ms (IMPORTANTE, richiesta rara ma critica)
@@ -42,8 +55,9 @@ Era come pagare l'assicurazione auto al massimo della copertura anche per i parc
 
 La logica è semplice:
 
-**Senza Tail Sampling (il mio modo vecchio):**
-```
+**Senza Tail Sampling (il modo vecchio):**
+
+```text
 Ogni richiesta
   ↓
 Decidi se tracciare (random 10% di tutte)
@@ -55,7 +69,8 @@ Problema: Traccia il 10% dei health check
 ```
 
 **Con Tail Sampling (intelligente):**
-```
+
+```text
 Ogni richiesta
   ↓
 Crea la traccia (temporaneamente)
@@ -70,7 +85,7 @@ Decidi:
   - Request normale? SALVA il 10%
 
 Beneficio: Salvi TUTTE le cose importanti
-           Scardi il rumore inutile
+           Scarti il rumore inutile
            Riduci costi di 10x
 ```
 
@@ -87,11 +102,9 @@ Breakdown:
 - 15/sec: Errori (importante, salva sempre)
 - 5/sec: Admin operations (importante, salva sempre)
 
----
+### Senza Tail Sampling (Tracciare Tutto)
 
-## Senza Tail Sampling (Tracciare Tutto)
-
-```
+```text
 Tracce/sec: 1000 (tutte!)
 Span per traccia: 8 (media)
 Span/sec: 8000
@@ -110,11 +123,9 @@ Con query, retention, alerting: +$2000-3000/mese per Datadog
 
 **Totale: ~$3000/mese per il tracing.**
 
----
+### Con Tail Sampling (Il Modo Intelligente)
 
-## Con Tail Sampling (Il Modo Intelligente)
-
-```
+```text
 Calcolo per ogni categoria:
 
 Health checks (400/sec): SCARTA 100%
@@ -149,9 +160,7 @@ Con Datadog light tier: ~$300/mese
 TOTALE: ~$300/mese
 ```
 
-**Sono passato da $3000 a $300.**
-
-**10x di riduzione.**
+**Sono passato da $3000 a $300. 10x di riduzione.**
 
 ---
 
@@ -238,7 +247,7 @@ app.get('/health', (req, res) => {
 
 Quando implementi il tail sampling, devi misurare:
 
-```
+```text
 Prima:
 - Storage usage: 10.4 TB/mese
 - Costo: $3000/mese
@@ -261,7 +270,7 @@ Ma cosa è importante: NON hai perso NULLA di critico
 
 ## Cosa Devi Sapere
 
-### 1. **Tail Sampling ha un trade-off: memoria vs intelligenza**
+### 1. Tail Sampling ha un trade-off: memoria vs intelligenza
 
 Il Collector deve **attendere che la traccia sia completa** prima di decidere se salvarla.
 
@@ -269,7 +278,7 @@ Significa: 100-500ms di latenza in memoria nel Collector.
 
 Non è un problema per la maggior parte dei casi, ma è un'informazione importante.
 
-### 2. **Devi decidere quali richieste sono importanti**
+### 2. Devi decidere quali richieste sono importanti
 
 Non è "plug and play". Devi pensare al tuo caso:
 
@@ -295,33 +304,23 @@ Con Tail Sampling:
 
 ---
 
-## Nel Prossimo Articolo
-
-Parlerò di come **instradare i tuoi dati dove servono davvero**.
-
-Non tutte le tracce, log, metriche vanno nello stesso posto:
-
-- I log tecnici vanno a Loki
-- L'audit log va a un servizio separato (compliance)
-- Le metriche vanno a Prometheus
-- Gli errori critici vanno ad una chat Slack
-
-**Un singolo SDK, mille destinazioni.**
-
-👉 Leggi il prossimo articolo.
-
----
-
-**Vuoi provare il Tail Sampling?**
+## Vuoi provare il Tail Sampling?
 
 Ho preparato il modulo 5 del workshop con tutto configurato:
 
 ```bash
-cd module-05-auditing-sampling
+cd otel-demo/module-05
 docker-compose up
-# Genera traffico
+# Genera un checkout
 curl -X POST http://localhost:7003/checkout -d '{"amount": 5000}'
 # Guarda Jaeger e vedi che QUESTA traccia viene salvata
 ```
 
-#OpenTelemetry #CostOptimization #Observability #Sampling
+---
+
+*Serie OpenTelemetry Workshop:*
+1. [Quando l'Osservabilità Non È Connessa]({{< relref "/posts/otel-workshop/01-perche-otel" >}})
+2. [Lo Standard È Importante: Come OTel Connette Servizi Diversi]({{< relref "/posts/otel-workshop/02-standard-otel" >}})
+3. [Il Tuo Primo Servizio con OpenTelemetry]({{< relref "/posts/otel-workshop/03-primo-servizio" >}})
+4. **Il Costo Nascosto dell'Osservabilità** (questo articolo)
+5. [I Dati Dove Servono: Routing Intelligente]({{< relref "/posts/otel-workshop/05-routing" >}})

@@ -1,12 +1,25 @@
-# I Dati Dove Servono: Routing Intelligente
+---
+title: "I Dati Dove Servono: Routing Intelligente con OpenTelemetry"
+date: 2025-01-09T10:00:00+01:00
+description: "Come instradare log e tracce verso destinazioni diverse per compliance GDPR e SOC2 usando il Routing Processor di OTel Collector"
+menu:
+  sidebar:
+    name: "5. Routing"
+    identifier: otel-5
+    weight: 50
+    parent: otel-workshop
+tags: ["OpenTelemetry", "Compliance", "GDPR", "Routing", "Logging"]
+categories: ["Observability", "Security", "Workshop"]
+draft: false
+---
 
-## Il Problema: Non Tutti i Log Vanno Nello Stesso Posto
+*Tempo di lettura: ~8 minuti*
 
 Quando usi OTel e inizi a loggare, tutto finisce nel **OTel Collector**.
 
 Il Collector riceve tutto e lo manda dove è configurato.
 
-```
+```text
 ├─ Log tecnico (debug, info, errors)
 ├─ Audit log (chi ha fatto cosa, quando)
 └─ Log di sistema (health checks, internal operations)
@@ -25,7 +38,7 @@ Se tutto va nello stesso Loki, un developer vede **TUTTO**: audit log, log sensi
 
 Questo non va bene per compliance.
 
-```
+```text
 Loki (accesso al team tecnico):
   [Payment of €5000 by alice@example.com] ← AUDIT, sensibile!
   [Internal cache miss]                     ← Tecnico, ok
@@ -38,7 +51,7 @@ Soluzione: **fare il Collector intelligente**.
 
 ## La Soluzione: Routing nel Collector
 
-Scopro che il Collector ha un **Routing Processor**.
+Il Collector ha un **Routing Processor**.
 
 La logica è semplice: il Collector **legge gli attributi dei log e decide dove mandarli.**
 
@@ -110,7 +123,8 @@ Il Collector legge l'attributo `log.type`:
 ## Il Risultato
 
 **Prima del Routing:**
-```
+
+```text
 Loki (everyone has access):
   Payment: €5000 by alice@example.com ← AUDIT, sensibile!
   Cache miss                           ← Tecnico
@@ -120,7 +134,8 @@ Loki (everyone has access):
 Un developer vede i dati di pagamento. Non va bene.
 
 **Dopo il Routing:**
-```
+
+```text
 Loki (dev team):
   Cache miss
   Query slow
@@ -267,27 +282,28 @@ service:
 
 ---
 
-## Nel Prossimo Articolo
+## Riepilogo della Serie
 
-Finale!
+In questa serie abbiamo costruito un sistema di osservabilità completo:
 
-Metto tutto insieme:
-- Logging centralizzato
-- Distributed tracing
-- Metriche
-- Tail sampling
-- Routing intelligente
+- **Logging centralizzato** con trace ID correlati
+- **Distributed tracing** fra servizi Node.js, Python e Go
+- **Metriche** per misurare performance
+- **Tail sampling** per ridurre costi del 90%
+- **Routing intelligente** per compliance GDPR/SOC2
 
-**Un singolo sistema di osservabilità, modulare e flessibile.**
-
-👉 Leggi l'articolo conclusivo.
+**Un singolo SDK, un singolo Collector, mille possibilità.**
 
 ---
 
-**Pronto a provare?**
+## Repository
+
+Tutto il codice è disponibile:
+
+👉 **[otel-demo](https://github.com/monte97/otel-demo)**
 
 ```bash
-cd module-06-advanced-routing
+cd otel-demo/module-06
 docker-compose up
 
 # Genera un checkout
@@ -296,9 +312,16 @@ curl -X POST http://localhost:8004/checkout \
   -d '{"user": "alice@example.com", "amount": 5000}'
 
 # Vedi l'audit log andare a audit-service
-docker logs module-06-advanced-routing-audit-service-1
+docker logs module-06-audit-service-1
 
 # Vedi i log tecnici su Loki via Grafana
 ```
 
-#OpenTelemetry #Compliance #Routing #GDPR #SOC2
+---
+
+*Serie OpenTelemetry Workshop:*
+1. [Quando l'Osservabilità Non È Connessa]({{< relref "/posts/otel-workshop/01-perche-otel" >}})
+2. [Lo Standard È Importante: Come OTel Connette Servizi Diversi]({{< relref "/posts/otel-workshop/02-standard-otel" >}})
+3. [Il Tuo Primo Servizio con OpenTelemetry]({{< relref "/posts/otel-workshop/03-primo-servizio" >}})
+4. [Il Costo Nascosto dell'Osservabilità]({{< relref "/posts/otel-workshop/04-tail-sampling" >}})
+5. **I Dati Dove Servono: Routing Intelligente** (questo articolo)

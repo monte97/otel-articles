@@ -1,6 +1,19 @@
-# Quando l'Osservabilità Non È Connessa: Il Perché del Workshop
+---
+title: "Quando l'Osservabilità Non È Connessa: Il Perché del Workshop"
+date: 2025-01-05T10:00:00+01:00
+description: "Perché l'osservabilità diventa un problema quando log, metriche e tracce non sono connesse, e come OpenTelemetry risolve questo"
+menu:
+  sidebar:
+    name: "1. Perché OTel"
+    identifier: otel-1
+    weight: 10
+    parent: otel-workshop
+tags: ["OpenTelemetry", "Observability", "Logging", "Tracing"]
+categories: ["Observability", "DevOps", "Workshop"]
+draft: false
+---
 
-## Il Problema Che Ho Trovato
+*Tempo di lettura: ~8 minuti*
 
 Quando cominci a strumentare sistemi complessi, scopri in fretta che **l'osservabilità diventa un casino se i dati non sono connessi**.
 
@@ -15,7 +28,7 @@ Ora il problema: come connetto questi tre pezzi di informazione?
 
 La metrica mi dice **che** c'è un problema. Il log mi dice **cosa** è successo. La traccia mi mostra **dove**. Ma **nessuno di questi tool sa che stanno parlando della stessa richiesta**.
 
-```
+```text
 ┌─────────────────┐
 │   Datadog       │ ← "Qualcosa è lento"
 ├─────────────────┤
@@ -85,7 +98,9 @@ Così ho deciso: **creo un workshop che mostra passo dopo passo**.
 6 moduli. Ognuno aggiunge un pezzo:
 
 **Modulo 1: Logging Centralizzato**
+
 Qual è il cambio che faccio quando aggiungo logging centralizzato?
+
 ```javascript
 // PRIMA: Log manuale con correlation ID
 logger.info({ id: uuid.v4(), msg: 'Purchase started' });
@@ -95,18 +110,23 @@ logger.info('Purchase started'); // OTel gestisce l'ID
 ```
 
 **Modulo 2: Tracce Distribuite**
+
 E se ho Node + Python + Go? Come faccio a vedere una singola traccia che attraversa tutti e tre?
 
 **Modulo 3: Metriche**
+
 Come aggiungo metriche (rate, errors, latency) senza cambiare il codice di logging?
 
 **Modulo 4: Tail Sampling**
+
 Se ho 10,000 richieste al secondo, non posso salvare tutte. Come decido quali salvare?
 
 **Modulo 5: Routing Intelligente**
+
 L'audit log deve andare in un posto diverso dal debug log. Come lo faccio?
 
 **Modulo 6: Tutto Insieme**
+
 Come metto tutto assieme in un sistema che funziona davvero?
 
 ---
@@ -115,7 +135,7 @@ Come metto tutto assieme in un sistema che funziona davvero?
 
 Ogni modulo ha tre cartelle:
 
-```
+```text
 module-01/
 ├── before/     ← Il codice SENZA OTel
 ├── after/      ← Il codice CON OTel
@@ -125,6 +145,7 @@ module-01/
 ```
 
 Puoi letteralmente fare:
+
 ```bash
 docker-compose up
 curl http://localhost:3003/api/test
@@ -165,19 +186,17 @@ Alla fine del workshop capirai:
 
 ---
 
-## Il Prossimo Step
+## Repository
 
-Nel prossimo articolo: **come aggiungere OTel a un servizio Node.js in pratica**.
+Il codice completo del workshop è disponibile:
 
-Non "ecco come funziona OTel."
-
-Ma "**ecco il codice prima, ecco il codice dopo, ecco cosa è cambiato.**"
-
-👉 Leggi il prossimo articolo.
+👉 **[otel-demo](https://github.com/monte97/otel-demo)**
 
 ---
 
-**Repository**: [Link GitHub]
-**Domande?** Apri una Issue.
-
-#OpenTelemetry #Observability #BackendDevelopment #NodeJS
+*Serie OpenTelemetry Workshop:*
+1. **Quando l'Osservabilità Non È Connessa** (questo articolo)
+2. [Lo Standard È Importante: Come OTel Connette Servizi Diversi]({{< relref "/posts/otel-workshop/02-standard-otel" >}})
+3. [Il Tuo Primo Servizio con OpenTelemetry]({{< relref "/posts/otel-workshop/03-primo-servizio" >}})
+4. [Il Costo Nascosto dell'Osservabilità]({{< relref "/posts/otel-workshop/04-tail-sampling" >}})
+5. [I Dati Dove Servono: Routing Intelligente]({{< relref "/posts/otel-workshop/05-routing" >}})

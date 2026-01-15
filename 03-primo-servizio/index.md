@@ -1,6 +1,19 @@
-# Il Tuo Primo Servizio con OpenTelemetry: Non È Magia, È Codice
+---
+title: "Il Tuo Primo Servizio con OpenTelemetry: Non È Magia, È Codice"
+date: 2025-01-07T10:00:00+01:00
+description: "Guida pratica per aggiungere OpenTelemetry a un servizio Node.js: setup, Collector, Jaeger e logging correlato in 25 righe di codice"
+menu:
+  sidebar:
+    name: "3. Primo Servizio"
+    identifier: otel-3
+    weight: 30
+    parent: otel-workshop
+tags: ["OpenTelemetry", "Node.js", "Jaeger", "Docker", "Tutorial"]
+categories: ["Observability", "Tutorial", "Workshop"]
+draft: false
+---
 
-## La Domanda Che Mi Fanno Più Spesso
+*Tempo di lettura: ~12 minuti*
 
 "Ok, capisco il concetto. Ma come lo faccio davvero? Dove inizio?"
 
@@ -52,7 +65,7 @@ Se qualcosa va male, hai:
 - Console log (sparisce quando il processo muore)
 - No trace di cosa è successo fra i servizi
 - No metriche
-- Se la llamada a inventory è lenta, non lo vedi
+- Se la chiamata a inventory è lenta, non lo vedi
 
 ---
 
@@ -78,25 +91,12 @@ sdk.start();
 console.log('✓ OpenTelemetry initialized');
 ```
 
-**Fatto. Questo è literalmente tutto il setup.**
+**Fatto. Questo è letteralmente tutto il setup.**
 
 Cosa fa questo codice?
 - Configura OpenTelemetry
 - Auto-instrumenta tutte le librerie Node.js (axios, express, database, ecc.)
 - Manda le tracce al Collector su localhost:4317
-
-```
-package.json - cambia SOLO lo start script
-{
-  "scripts": {
-    "start": "node --require ./instrumentation.js index.js"
-  }
-}
-```
-
-Il flag `--require` **carica instrumentation.js PRIMA di index.js**.
-
-Fondamentale, perché OTel deve hokkare le librerie prima che le usi.
 
 ---
 
@@ -115,6 +115,7 @@ Nel tuo `package.json`, cambia solo la riga `start`:
 Il flag `--require` carica `instrumentation.js` **prima** di tutto il resto. Fondamentale, perché OTel deve interceptare le librerie prima che le usi.
 
 Avvia:
+
 ```bash
 npm start
 ```
@@ -122,6 +123,7 @@ npm start
 Adesso il tuo servizio è instrumentato. **Senza aver cambiato nulla nel codice dell'app.**
 
 Testa:
+
 ```bash
 curl http://localhost:3003/buy?userId=alice&productId=123
 ```
@@ -185,6 +187,7 @@ services:
 ```
 
 Avvia:
+
 ```bash
 docker-compose up
 ```
@@ -201,7 +204,7 @@ Premi il bottone Search.
 
 **E vedi:**
 
-```
+```text
 Service: shop-service
 Operation: GET /buy
 Duration: 547ms
@@ -211,7 +214,7 @@ Duration: 547ms
 └─ Response - 77ms
 ```
 
-Una singola timeline. Tutto correlato. Bello.
+Una singola timeline. Tutto correlato.
 
 ---
 
@@ -265,13 +268,15 @@ Ora ogni log ha il `traceId`. Se apri Jaeger e clicchi su un'operazione, puoi an
 ## Quello Che È Successo
 
 Prima:
-```
+
+```text
 console.log('Purchase started')
   → stdout → scompare
 ```
 
 Dopo:
-```
+
+```text
 logger.info('Purchase started')
   → {traceId: "abc123...", message: "Purchase started"}
   → OTel Collector
@@ -289,7 +294,7 @@ logger.info('Purchase started')
 
 ## I File Che Hai Creato
 
-```
+```text
 my-service/
 ├── instrumentation.js      (20 righe)
 ├── index.js               (il tuo codice, UNCHANGED)
@@ -312,41 +317,31 @@ E hai ottenuto:
 
 Bene, ma cosa succede se:
 
-1. **Hai migliaia di richieste al giorno?** (Costi di storage → Module 4: Tail Sampling)
-2. **Vuoi misurare le performance?** (Rate, Errors, Duration → Module 3: Metriche)
-3. **Vuoi separare l'audit log dai debug log?** (→ Module 5: Routing)
+1. **Hai migliaia di richieste al giorno?** (Costi di storage → prossimo articolo: Tail Sampling)
+2. **Vuoi misurare le performance?** (Rate, Errors, Duration → Metriche)
+3. **Vuoi separare l'audit log dai debug log?** (→ Routing)
 
 Questi sono gli argomenti dei prossimi articoli.
 
 ---
 
-## Il Prossimo Passo?
-
-Nel prossimo articolo aggiungiamo le **metriche**.
-
-Non per fare "bello", ma per **rispondere a domande come**:
-- Quante richieste al secondo?
-- Quale % fallisce?
-- Quale latency media?
-
-Senza aggiunger complessità.
-
-👉 Leggi il prossimo articolo.
-
----
-
-**Vuoi provare?**
+## Vuoi Provare?
 
 Ho preparato tutto in docker-compose. Clona il repository:
 
 ```bash
-git clone [repo]
-cd module-03-traces
+git clone https://github.com/monte97/otel-demo
+cd otel-demo/module-03
 docker-compose up
 # Apri http://localhost:5003/buy?userId=test&productId=123
 # Poi guarda Jaeger su http://localhost:16686
 ```
 
-**Domande?** Apri una Issue.
+---
 
-#OpenTelemetry #Observability #DistributedTracing #NodeJS
+*Serie OpenTelemetry Workshop:*
+1. [Quando l'Osservabilità Non È Connessa]({{< relref "/posts/otel-workshop/01-perche-otel" >}})
+2. [Lo Standard È Importante: Come OTel Connette Servizi Diversi]({{< relref "/posts/otel-workshop/02-standard-otel" >}})
+3. **Il Tuo Primo Servizio con OpenTelemetry** (questo articolo)
+4. [Il Costo Nascosto dell'Osservabilità]({{< relref "/posts/otel-workshop/04-tail-sampling" >}})
+5. [I Dati Dove Servono: Routing Intelligente]({{< relref "/posts/otel-workshop/05-routing" >}})

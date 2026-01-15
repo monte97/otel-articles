@@ -1,6 +1,19 @@
-# Lo Standard È Importante: Come OTel Connette Servizi Diversi
+---
+title: "Lo Standard È Importante: Come OTel Connette Servizi Diversi"
+date: 2025-01-06T10:00:00+01:00
+description: "Perché OpenTelemetry come standard permette a servizi in Node.js, Python e Go di comunicare tracce senza configurazione manuale"
+menu:
+  sidebar:
+    name: "2. Standard OTel"
+    identifier: otel-2
+    weight: 20
+    parent: otel-workshop
+tags: ["OpenTelemetry", "Standards", "Microservices", "Distributed Tracing"]
+categories: ["Observability", "DevOps", "Workshop"]
+draft: false
+---
 
-## Il Vero Problema: Linguaggi Diversi
+*Tempo di lettura: ~10 minuti*
 
 Quando inizi a lavorare con microservizi in linguaggi diversi, scopri in fretta il problema.
 
@@ -13,6 +26,10 @@ Tutto su stessa richiesta HTTP.
 
 Domanda semplice: **come faccio a vedere dove ci impiega più tempo?**
 
+---
+
+## Il Problema: Linguaggi Diversi, Tool Diversi
+
 Senza OTel:
 - Il team Node ha il suo strumento di tracing (tipo APM di Node)
 - Il team Python ha il suo strumento
@@ -20,7 +37,7 @@ Senza OTel:
 
 Sono tre "lingue" diverse. Tre tool diversi. Tre modi diversi di scrivere ID di traccia.
 
-```
+```text
 Node.js APM:
   └─ Request ID: "abc-123"
      └─ Timestamp: 1692000000
@@ -44,11 +61,9 @@ Quando la richiesta passa da Node a Python, non c'è uno standard che dice "pass
 
 ## Quando Ho Capito Che Uno Standard Era Necessario
 
-Ho capito l'importanza di uno standard quando stavo integrando tre servizi in linguaggi diversi.
-
 Potevo fare:
 1. **Passare manualmente l'ID**: Ogni servizio copia-incolla l'ID dal precedente nei log. Funziona ma è manuale e fragile.
-2. **Usare uno standard condiviso**: Tutti leggono e scrivono X con lo stesso formato.
+2. **Usare uno standard condiviso**: Tutti leggono e scrivono con lo stesso formato.
 
 Mi sembrò ovvio che la soluzione era la 2.
 
@@ -96,13 +111,12 @@ Quando la richiesta passa da Node a Python, Python **sa esattamente come leggere
 
 ## L'Auto-Instrumentation: La Parte Magica
 
-Ma c'è una cosa ancora più importante di OTel.
-
 OTel ha qualcosa che si chiama **auto-instrumentation**.
 
 Significa: "Non devo scrivere codice manuale per tracciare ogni operazione. OTel lo fa per me."
 
 Quando faccio:
+
 ```javascript
 const response = await axios.get('http://inventory-service:3007/data');
 ```
@@ -131,7 +145,7 @@ response = requests.get('http://payment-service:3008/process')
 
 Quando una richiesta attraversa Node → Python → Go, il risultato è:
 
-```
+```text
 Trace ID: 4bf92f3577b34da6a3ce929d0e0e4736
 
 GET /buy (Node)           [0ms - 470ms]
@@ -154,7 +168,8 @@ Non devo aprire tre tool diversi. Non devo copiare manualmente gli ID. Non devo 
 ## Perché Uno Standard Conta
 
 Quando non c'è uno standard, succede questo:
-```
+
+```text
 Node dice: "trace_id=abc"
 Python interpreta come: Niente. Cosa significa abc?
 Go non sa nemmeno che Node ha mandato un ID.
@@ -163,7 +178,8 @@ Risultato: Tre tracce disconnesse.
 ```
 
 Con uno standard:
-```
+
+```text
 Node dice: "traceparent=4bf92f3577b34da6a3ce929d0e0e4736"
 Python legge: "Ah, traceparent è lo standard OTEL. Lo conosco."
 Go legge: "Lo conosco anche io."
@@ -181,7 +197,7 @@ C'è un'altra cosa importante.
 
 Se usi uno standard come OTel, **non sei legato a un vendor**.
 
-```
+```text
 Con Datadog APM:
 - Scrivi il codice usando Datadog SDK
 - Sei legato a Datadog
@@ -204,27 +220,23 @@ OTel è lo stesso per l'osservabilità.
 
 Nel workshop mostro esattamente questa cosa.
 
-Modulo 1: Un servizio Node con logging
-Modulo 2: Aggiungi due servizi (Python e Go) e guarda una singola traccia
-Modulo 3: Aggiungi metriche
+- Modulo 1: Un servizio Node con logging
+- Modulo 2: Aggiungi due servizi (Python e Go) e guarda una singola traccia
+- Modulo 3: Aggiungi metriche
 
 **Non è "impara OTel".** È "**vedi come uno standard connette sistemi diversi**."
 
 ---
 
-## Il Prossimo Step
+## Repository
 
-Nel prossimo articolo: come aggiungere concretamente OTel a un servizio Node.
-
-Non teoria. Codice vero.
-
-Differenze prima e dopo, riga per riga.
-
-👉 Leggi il prossimo articolo.
+👉 **[otel-demo](https://github.com/monte97/otel-demo)**
 
 ---
 
-**Repository**: [Link GitHub]
-**Domande?** Apri una Issue.
-
-#OpenTelemetry #Observability #Standards #Microservices #BackendDevelopment
+*Serie OpenTelemetry Workshop:*
+1. [Quando l'Osservabilità Non È Connessa]({{< relref "/posts/otel-workshop/01-perche-otel" >}})
+2. **Lo Standard È Importante: Come OTel Connette Servizi Diversi** (questo articolo)
+3. [Il Tuo Primo Servizio con OpenTelemetry]({{< relref "/posts/otel-workshop/03-primo-servizio" >}})
+4. [Il Costo Nascosto dell'Osservabilità]({{< relref "/posts/otel-workshop/04-tail-sampling" >}})
+5. [I Dati Dove Servono: Routing Intelligente]({{< relref "/posts/otel-workshop/05-routing" >}})
